@@ -92,15 +92,10 @@ def depthFirstSearch(problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
     '''
     from util import Stack
-    print('allo')
     # print("Start:", problem.getStartState())
     # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-    
-    # s = Directions.SOUTH
-    # w = Directions.WEST
-    # n = Directions.NORTH
-    # e = Directions.EAST
+
 
     #Get initial state
     state = problem.getStartState()
@@ -146,7 +141,7 @@ def breadthFirstSearch(problem):
     '''
         #Get initial state
     state = problem.getStartState()
-    #Initialize stack
+    #Initialize queue
     queue = Queue()
     #Push initial state to stack
     queue.push({'state':state, 'parentState':''})
