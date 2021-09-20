@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from game import Directions
 
 class SearchProblem:
     """
@@ -90,17 +91,90 @@ def depthFirstSearch(problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
     '''
+    from util import Stack
+    print('allo')
+    # print("Start:", problem.getStartState())
+    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+    
+    # s = Directions.SOUTH
+    # w = Directions.WEST
+    # n = Directions.NORTH
+    # e = Directions.EAST
 
-    util.raiseNotDefined()
+    #Get initial state
+    state = problem.getStartState()
+    #Initialize stack
+    stack = Stack()
+    #Push initial state to stack
+    stack.push({'state':state, 'parentState':''})
+
+    solution = []
+    visited = []
+    #While stack is not empty
+    while not (stack.isEmpty()):
+        #pop state off stack
+        state = stack.pop()
+        #if state is the goal state
+        if problem.isGoalState(state['state']):
+
+            while state['parentState'] != '':
+                solution.append(state['moveTo'])
+                state = state['parentState']
+            solution.reverse()
+            print('gg')
+            return solution
+
+        else:
+            C = problem.getSuccessors(state['state'])
+            for s in C:
+                if s[0] not in visited:
+                    stack.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
+                    visited.append(s[0])
+
+    return []
+
 
 
 def breadthFirstSearch(problem):
+    from util import Queue
     """Search the shallowest nodes in the search tree first."""
 
 
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
+        #Get initial state
+    state = problem.getStartState()
+    #Initialize stack
+    queue = Queue()
+    #Push initial state to stack
+    queue.push({'state':state, 'parentState':''})
+
+    solution = []
+    visited = []
+    #While stack is not empty
+    while not (queue.isEmpty()):
+        #pop state off stack
+        state = queue.pop()
+        #if state is the goal state
+        if problem.isGoalState(state['state']):
+
+            while state['parentState'] != '':
+                solution.append(state['moveTo'])
+                state = state['parentState']
+            solution.reverse()
+            print('gg')
+            return solution
+
+        else:
+            C = problem.getSuccessors(state['state'])
+            for s in C:
+                if s[0] not in visited:
+                    queue.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
+                    visited.append(s[0])
+
+    return []
 
     util.raiseNotDefined()
 
