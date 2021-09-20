@@ -110,6 +110,7 @@ def depthFirstSearch(problem):
     while not (stack.isEmpty()):
         #pop state off stack
         state = stack.pop()
+
         #if state is the goal state
         if problem.isGoalState(state['state']):
 
@@ -120,12 +121,14 @@ def depthFirstSearch(problem):
             print('gg')
             return solution
 
-        else:
+        elif state['state'] not in visited:
             C = problem.getSuccessors(state['state'])
+            # print(C)
+            # C.reverse()
             for s in C:
-                if s[0] not in visited:
-                    stack.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
-                    visited.append(s[0])
+                stack.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
+        
+        visited.append(state['state'])
 
     return []
 
@@ -162,13 +165,12 @@ def breadthFirstSearch(problem):
             print('gg')
             return solution
 
-        else:
+        elif state['state'] not in visited:
             C = problem.getSuccessors(state['state'])
             for s in C:
-                if s[0] not in visited:
-                    queue.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
-                    visited.append(s[0])
+                queue.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
 
+        visited.append(state['state'])
     return []
 
     util.raiseNotDefined()
@@ -176,10 +178,51 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
 
-
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
+    from util import PriorityQueue
+    # print("Start:", problem.getStartState())
+    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+
+
+
+    #Get initial state
+    state = problem.getStartState()
+    
+    #Initialize stack
+    pQueue = PriorityQueue()
+
+    #Push initial state to stack
+    pQueue.push({'state':state, 'parentState':'', 'priority': 0}, 0)
+
+    solution = []
+    visited = []
+    #While stack is not empty
+    while not (pQueue.isEmpty()):
+        #pop state off stack
+        state = pQueue.pop()
+
+        #if state is the goal state
+        if problem.isGoalState(state['state']):
+
+            while state['parentState'] != '':
+                solution.append(state['moveTo'])
+                state = state['parentState']
+            solution.reverse()
+            print('gg')
+            return solution
+
+        elif state['state'] not in visited:
+            C = problem.getSuccessors(state['state'])
+            for s in C:
+                cost = state['priority'] + s[2]
+                pQueue.push({'state':s[0], 'moveTo':s[1], 'priority':cost,'parentState':state}, cost)
+        
+        visited.append(state['state'])
+
+    return []
 
     util.raiseNotDefined()
 
@@ -195,6 +238,56 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 4 ICI
     '''
+    from util import PriorityQueue
+    # print("Start:", problem.getStartState())
+    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+
+
+
+    #Get initial state
+    state = problem.getStartState()
+    
+    #Initialize stack
+    pQueue = PriorityQueue()
+
+    #Push initial state to stack
+    # gs = 0
+    # hs = heuristic(state, problem)
+    # cost = gs + hs
+    # print('S cost: ',cost)
+    pQueue.push({'state':state, 'parentState':'', 'priority': 0}, 0)
+
+    solution = []
+    visited = []
+    #While stack is not empty
+    while not (pQueue.isEmpty()):
+        #pop state off stack
+        state = pQueue.pop()
+
+        #if state is the goal state
+        if problem.isGoalState(state['state']):
+
+            while state['parentState'] != '':
+                solution.append(state['moveTo'])
+                state = state['parentState']
+            solution.reverse()
+            print('gg')
+            return solution
+
+        elif state['state'] not in visited:
+            C = problem.getSuccessors(state['state'])
+            for s in C:
+
+                hs = heuristic(s[0], problem)
+                moveCost = state['priority'] + s[2]
+                priority = hs + moveCost
+
+                pQueue.push({'state':s[0], 'moveTo':s[1], 'priority':moveCost,'parentState':state}, priority)
+        
+        visited.append(state['state'])
+
+    return []
 
     util.raiseNotDefined()
 
