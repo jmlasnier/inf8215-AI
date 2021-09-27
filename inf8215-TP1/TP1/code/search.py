@@ -103,7 +103,6 @@ def depthFirstSearch(problem):
     stack = Stack()
     #Push initial state to stack
     stack.push({'state':state, 'parentState':''})
-
     solution = []
     visited = []
     #While stack is not empty
@@ -144,10 +143,10 @@ def breadthFirstSearch(problem):
     '''
         #Get initial state
     state = problem.getStartState()
-    #Initialize queue
     queue = Queue()
     #Push initial state to stack
     queue.push({'state':state, 'parentState':''})
+    # queue.push({'state':(5,2), 'parentState':''})
 
     solution = []
     visited = []
@@ -163,6 +162,7 @@ def breadthFirstSearch(problem):
                 state = state['parentState']
             solution.reverse()
             print('gg')
+            print(solution)
             return solution
 
         elif state['state'] not in visited:

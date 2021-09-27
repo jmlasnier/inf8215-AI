@@ -294,6 +294,11 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
+        self.goalCounter = 0
+        # self.corner_list= []
+        # for corner in self.corners:
+        #     self.corner_list.append(corner)
+
 
 
     def getStartState(self):
@@ -305,7 +310,14 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
+        corner_list=[]
+        for corner in self.corners:
+            corner_list.append(corner)
         
+        dictVidange = {'position':self.startingPosition , 'test':corner_list}
+        print('-------------', dictVidange)
+        return dictVidange
+        # return self.startingPosition
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -316,6 +328,16 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
+        # {'position':self.startingPosition , 'test':'vidange'}
+        isGoal = not(state['test'])
+        return isGoal
+        # if state in self.corner_list:
+        #     self.corner_list.remove(state)
+        #     print('new corner_list:', self.corner_list)
+        #     return False
+        # if not self.corner_list:
+        #     print('corner_list should be empty', self.corner_list)
+        #     return True
 
         util.raiseNotDefined()
 
@@ -330,8 +352,8 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
 
-        successors = []
-        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+        # successors = []
+        # for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
             #   x,y = currentPosition
@@ -339,13 +361,39 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
            
-            '''
-                INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
-            '''
+        '''
+            INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
+        '''
+        
+        # if state in self.corner_list:
+        #     self.corner_list.remove(state)
+
+        
+        # if state['position'] in state['test']:
+        #     print(state['position'])
+        #     state['test'].remove(state['position'])
+
+        successors = []
+        cost = 1
+        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x,y = state['position']
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
 
 
+            hitsWall = self.walls[nextx][nexty]
+            if not(hitsWall):
+
+                newCornerList = state['test']
+                if state['position'] in state['test']:
+                    newCornerList.remove(state['position'])
+                
+                succ = ({'position':(nextx, nexty), 'test': newCornerList}, action, cost)
+                successors.append(succ)
+            
         self._expanded += 1 # DO NOT CHANGE
         return successors
+
 
     def getCostOfActions(self, actions):
         """
