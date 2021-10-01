@@ -391,6 +391,7 @@ class CornersProblem(search.SearchProblem):
 
 import math
 import search
+import sys
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -411,89 +412,27 @@ def cornersHeuristic(state, problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
 
-    re = 999999999
-    for i in state['pellets']:
-        x, y = state['position']
-        copyPellets = []
-        for pellet in state['pellets']:
-            copyPellets.append(pellet)
+    total = 0
+    pos = state['position']
+    copyPellets = []
+    for pellet in state['pellets']:
+        copyPellets.append(pellet)
 
-        tempResult = ((x, y), i)
-        copyPellets.remove(i)
-        x, y = i
-        while(len(copyPellets) > 0):
-            minimumDist = 99999
-            nextDestination = None
-            for j in copyPellets:
-                distance = manDist((x, y), j)
-                if distance < minimumDist:
-                    nextDestination = j
-                    minimumDist = distance
+    while (len(copyPellets) > 0):
+        minimumDist = sys.maxsize
+        minimumPellet = None
+        for pellet in copyPellets:
+            d = manDist(pos, pellet)
+            if (d < minimumDist):
+                minimumDist = d
+                minimumPellet = pellet
 
-            x, y = nextDestination
-            copyPellets.remove(nextDestination)
-            tempResult += minimumDist
-            
-        if tempResult < re:
-            re = tempResult
+        copyPellets.remove(minimumPellet)
+        pos = minimumPellet
+        total += minimumDist
+
+    return total
     
-    return re
-
-    
-    # # print(state)
-    # result = 99999999
-    # secondMan = 9999999
-
-
-
-    # remainingPellets = []
-    # visitedPellets = []
-    # total=0
-    # total2=0
-    # total3=0
-    # total4=0
-
-    # for pellet in state['pellets']:
-    #     result2 = 999999
-    #     total = manDist(state['position'],pellet)
-    #     visitedPellets.append(pellet)
-    #     #
-    #     for pellet2 in state['pellets']:
-    #         result3 = 999999
-    #         if pellet2 not in visitedPellets:
-    #             total2 = manDist(pellet, pellet2)
-    #             visitedPellets.append(pellet2)
-    #         ##
-    #             for pellet3 in state['pellets']:
-    #                 result4 = 999999
-    #                 if pellet3 not in visitedPellets:
-    #                     total3 = manDist(pellet2, pellet3)
-    #                     visitedPellets.append(pellet3)
-    #                     ###
-    #                     for pellet4 in state['pellets']:
-    #                         if pellet4 not in visitedPellets:
-    #                             total4 = manDist(pellet3, pellet4)
-                                
-    #                     ###
-    #                     visitedPellets.remove(pellet3)
-    #                 total3 = total3 + total4
-    #                 if total3 < result3:
-    #                     result3 = total3
-
-    #                 ##
-    #                     visitedPellets.remove(pellet2)
-    #                 total2 = total2 + total3 + total4
-    #                 if total2 < result2:
-    #                     result2 = total2
-    #     #
-    #         visitedPellets.remove(pellet)
-    #     total = total + total2 + total3 + total4
-    #     if total < result:
-    #         result = total
-
-
-    # return result
-
 
 def manDist(start, goal):
     x1, y1 = start
