@@ -314,8 +314,7 @@ class CornersProblem(search.SearchProblem):
         for corner in self.corners:
             corner_list.append(corner)
         
-        dictVidange = {'position':self.startingPosition , 'test':corner_list}
-        print('-------------', dictVidange)
+        dictVidange = {'position':self.startingPosition , 'pellets':corner_list}
         return dictVidange
         # return self.startingPosition
         util.raiseNotDefined()
@@ -328,17 +327,7 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
-        # {'position':self.startingPosition , 'test':'vidange'}
-        isGoal = not(state['test'])
-        return isGoal
-        # if state in self.corner_list:
-        #     self.corner_list.remove(state)
-        #     print('new corner_list:', self.corner_list)
-        #     return False
-        # if not self.corner_list:
-        #     print('corner_list should be empty', self.corner_list)
-        #     return True
-
+        return len(state['pellets']) == 0
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -365,13 +354,6 @@ class CornersProblem(search.SearchProblem):
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
         
-        # if state in self.corner_list:
-        #     self.corner_list.remove(state)
-
-        
-        # if state['position'] in state['test']:
-        #     print(state['position'])
-        #     state['test'].remove(state['position'])
 
         successors = []
         cost = 1
@@ -379,16 +361,15 @@ class CornersProblem(search.SearchProblem):
             x,y = state['position']
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-
-
             hitsWall = self.walls[nextx][nexty]
             if not(hitsWall):
 
-                newCornerList = state['test']
-                if state['position'] in state['test']:
-                    newCornerList.remove(state['position'])
+                newCornerList = state['pellets']
+
+                if (nextx, nexty) in state['pellets']:
+                    newCornerList = [ corner for corner in state['pellets'] if corner != (nextx, nexty)]
                 
-                succ = ({'position':(nextx, nexty), 'test': newCornerList}, action, cost)
+                succ = ({'position':(nextx, nexty), 'pellets': newCornerList}, action, cost)
                 successors.append(succ)
             
         self._expanded += 1 # DO NOT CHANGE
@@ -408,6 +389,8 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+import math
+import search
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -427,8 +410,50 @@ def cornersHeuristic(state, problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
+
+    for i in state['pellets']:
+        x, y = state['position']
+        manDist
+
     
-    return 0
+    # print(state)
+    result = 99999999
+    secondMan = 9999999
+
+
+
+    # x1, y1 = state['position']
+    # if len(state['pellets'])>=2:
+    # 4 pellets
+    remainingPellets = []
+    # remainingPellets = [ corner for corner in state['pellets'] if corner != (nextx, nexty)]
+    for pellet in state['pellets']:
+        
+        total = manDist(state['position'],pellet)
+        visitedPellets = []
+        visitedPellets.append(pellet)
+
+        for pellet2 in state['pellets']:
+            if pellet2 not in visitedPellets:
+                total2 = manDist(pellet,pellet2)
+
+                visitedPellets
+
+                if total2 < secondMan:
+                    secondMan=total2
+        
+        total += secondMan
+        if total < result:
+            result = total
+    return result
+
+def manDist(start, goal):
+    x1, y1 = start
+    x2, y2 = goal
+    dx = abs(x1 - x2)
+    dy = abs(y1 - y2)
+    return dx+dy
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

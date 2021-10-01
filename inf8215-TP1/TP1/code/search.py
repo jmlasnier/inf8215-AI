@@ -137,32 +137,24 @@ def breadthFirstSearch(problem):
     from util import Queue
     """Search the shallowest nodes in the search tree first."""
 
-
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
         #Get initial state
     state = problem.getStartState()
     queue = Queue()
-    #Push initial state to stack
     queue.push({'state':state, 'parentState':''})
-    # queue.push({'state':(5,2), 'parentState':''})
 
     solution = []
     visited = []
-    #While stack is not empty
     while not (queue.isEmpty()):
-        #pop state off stack
         state = queue.pop()
-        #if state is the goal state
         if problem.isGoalState(state['state']):
 
             while state['parentState'] != '':
                 solution.append(state['moveTo'])
                 state = state['parentState']
             solution.reverse()
-            print('gg')
-            print(solution)
             return solution
 
         elif state['state'] not in visited:
