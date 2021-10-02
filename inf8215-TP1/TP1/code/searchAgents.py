@@ -537,14 +537,7 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
-    position, foodGrid = state
-    food = foodGrid.asList()
 
-    distanceToDot = 0
-    for dot in food:
-        if util.manhattanDistance(position, dot) > distanceToDot:
-            distanceToDot = util.manhattanDistance(position, dot)
-    return distanceToDot
 
 
 
