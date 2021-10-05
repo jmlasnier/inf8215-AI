@@ -432,7 +432,7 @@ def cornersHeuristic(state, problem):
         total += minimumDist
 
     return total
-    
+
 
 def manDist(start, goal):
     x1, y1 = start
@@ -538,6 +538,9 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
 
+    total = 0
 
-    return 0
+    for pellet in foodGrid.asList():
+        total += manDist(position, pellet) / len(foodGrid.asList())
 
+    return total
