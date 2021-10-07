@@ -505,6 +505,7 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 def foodHeuristic(state, problem: FoodSearchProblem):
+    from util import Queue
     """
     Your heuristic for the FoodSearchProblem goes here.
 
@@ -538,9 +539,35 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
 
-    total = 0
+    distanceLoin = 0
+    pelletLoin = position
 
     for pellet in foodGrid.asList():
-        total += manDist(position, pellet) / len(foodGrid.asList())
+        distance = manDist(position, pellet)
+        if distance > distanceLoin:
+            distanceLoin = distance
+            pelletLoin = pellet
 
-    return total
+    queue = Queue()
+    queue.push({'state':state, 'parentState': None})
+    visited = []
+    total = 0
+
+    while not (queue.isEmpty()):
+        state = queue.pop()
+        if state['state'][0] == pelletLoin:
+            while state['parentState'] != None:
+                total += 1
+                state = state['parentState']
+            
+            return total
+        
+        elif state['state'][0] not in visited:
+            C = problem.getSuccessors(state['state'])
+            for s in C:
+                queue.push({'state': s[0], 'parentState': state})
+            
+        visited.append(state['state'][0])
+
+    return 0
+
