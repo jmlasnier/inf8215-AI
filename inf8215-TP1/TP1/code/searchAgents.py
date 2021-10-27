@@ -1,3 +1,12 @@
+'''
+inf8215 TP1 complété par:
+Nom:                Matricue:
+ William Balea        1904905
+ Jean-Michel Lasnier  1905682
+ 
+'''
+
+
 # searchAgents.py
 # ---------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -295,9 +304,6 @@ class CornersProblem(search.SearchProblem):
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
         self.goalCounter = 0
-        # self.corner_list= []
-        # for corner in self.corners:
-        #     self.corner_list.append(corner)
 
 
 
@@ -314,9 +320,8 @@ class CornersProblem(search.SearchProblem):
         for corner in self.corners:
             corner_list.append(corner)
         
-        dictVidange = {'position':self.startingPosition , 'pellets':corner_list}
-        return dictVidange
-        # return self.startingPosition
+        initState = {'position':self.startingPosition , 'pellets':corner_list}
+        return initState
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -339,17 +344,7 @@ class CornersProblem(search.SearchProblem):
             action, stepCost), where 'successor' is a successor to the current
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
-        """
-
-        # successors = []
-        # for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-           
+        """           
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
@@ -537,10 +532,42 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
+    iState = problem.startingGameState
+    walls = problem.walls
+    pellets = foodGrid.asList()
 
-    total = 0
+    if len(pellets) == 0:
+        return 0
+    else:
 
-    for pellet in foodGrid.asList():
-        total += manDist(position, pellet) / len(foodGrid.asList())
+        total = 0
 
-    return total
+        furthestPel = tuple()
+        furthestDist = 0
+
+        for pellet in pellets:
+            tempDist = manDist(position, pellet)
+
+            total += tempDist/len(foodGrid.asList())
+        # return total
+
+
+        # for pellet in pellets:
+        #     furthestDist = max(furthestDist, findDistInMazeBFS(iState, position, walls, iState))
+        # print(furthestDist)
+
+        # # closestDist = 99999
+        # # furthest = 0
+        
+        return total
+
+
+def findDistInMazeBFS(start, goal, walls, gameState):
+    # print(start)
+    # x1,x2 = start
+    # y1,y2 = goal
+    # assert not walls[x1][y1], 'point1 is a wall: ' + str(start)
+    # assert not walls[x2][y2], 'point2 is a wall: ' + str(goal)
+    problem  = PositionSearchProblem(gameState, start=start, goal=goal, warn=False,visualize=False)
+    return len(search.bfs(problem))
+
