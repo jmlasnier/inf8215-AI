@@ -1,3 +1,12 @@
+'''
+inf8215 TP1 complété par:
+Nom:                Matricue:
+ William Balea        1904905
+ Jean-Michel Lasnier  1905682
+ 
+'''
+
+
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -92,39 +101,27 @@ def depthFirstSearch(problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
     '''
     from util import Stack
-    # print("Start:", problem.getStartState())
-    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
 
-
-    #Get initial state
     state = problem.getStartState()
-    #Initialize stack
     stack = Stack()
-    #Push initial state to stack
     stack.push({'state':state, 'parentState':''})
 
     solution = []
     visited = []
-    #While stack is not empty
+    
     while not (stack.isEmpty()):
-        #pop state off stack
         state = stack.pop()
 
-        #if state is the goal state
         if problem.isGoalState(state['state']):
 
             while state['parentState'] != '':
                 solution.append(state['moveTo'])
                 state = state['parentState']
             solution.reverse()
-            print('gg')
             return solution
 
         elif state['state'] not in visited:
             C = problem.getSuccessors(state['state'])
-            # print(C)
-            # C.reverse()
             for s in C:
                 stack.push({'state':s[0], 'moveTo':s[1], 'parentState':state})
         
@@ -138,31 +135,23 @@ def breadthFirstSearch(problem):
     from util import Queue
     """Search the shallowest nodes in the search tree first."""
 
-
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
-        #Get initial state
     state = problem.getStartState()
-    #Initialize queue
     queue = Queue()
-    #Push initial state to stack
     queue.push({'state':state, 'parentState':''})
 
     solution = []
     visited = []
-    #While stack is not empty
     while not (queue.isEmpty()):
-        #pop state off stack
         state = queue.pop()
-        #if state is the goal state
         if problem.isGoalState(state['state']):
 
             while state['parentState'] != '':
                 solution.append(state['moveTo'])
                 state = state['parentState']
             solution.reverse()
-            print('gg')
             return solution
 
         elif state['state'] not in visited:
@@ -182,36 +171,22 @@ def uniformCostSearch(problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
     from util import PriorityQueue
-    # print("Start:", problem.getStartState())
-    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
 
-
-
-    #Get initial state
     state = problem.getStartState()
-    
-    #Initialize stack
     pQueue = PriorityQueue()
-
-    #Push initial state to stack
     pQueue.push({'state':state, 'parentState':'', 'priority': 0}, 0)
 
     solution = []
     visited = []
-    #While stack is not empty
     while not (pQueue.isEmpty()):
-        #pop state off stack
         state = pQueue.pop()
 
-        #if state is the goal state
         if problem.isGoalState(state['state']):
 
             while state['parentState'] != '':
                 solution.append(state['moveTo'])
                 state = state['parentState']
             solution.reverse()
-            print('gg')
             return solution
 
         elif state['state'] not in visited:
@@ -239,40 +214,23 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 4 ICI
     '''
     from util import PriorityQueue
-    # print("Start:", problem.getStartState())
-    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
 
-
-
-    #Get initial state
     state = problem.getStartState()
-    
-    #Initialize stack
     pQueue = PriorityQueue()
-
-    #Push initial state to stack
-    # gs = 0
-    # hs = heuristic(state, problem)
-    # cost = gs + hs
-    # print('S cost: ',cost)
     pQueue.push({'state':state, 'parentState':'', 'priority': 0}, 0)
 
     solution = []
     visited = []
-    #While stack is not empty
+
     while not (pQueue.isEmpty()):
-        #pop state off stack
         state = pQueue.pop()
 
-        #if state is the goal state
         if problem.isGoalState(state['state']):
 
             while state['parentState'] != '':
                 solution.append(state['moveTo'])
                 state = state['parentState']
             solution.reverse()
-            print('gg')
             return solution
 
         elif state['state'] not in visited:

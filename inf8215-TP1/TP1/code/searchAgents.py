@@ -1,3 +1,12 @@
+'''
+inf8215 TP1 complété par:
+Nom:                Matricue:
+ William Balea        1904905
+ Jean-Michel Lasnier  1905682
+ 
+'''
+
+
 # searchAgents.py
 # ---------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -317,13 +326,7 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
-        counter = 0
-        for corner in self.corners:
-            if counter ==4:
-                return True
-            if state == corner:
-                counter+=1
-        return False
+        return len(state['pellets']) == 0
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -335,7 +338,11 @@ class CornersProblem(search.SearchProblem):
             action, stepCost), where 'successor' is a successor to the current
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
-        """
+        """           
+        '''
+            INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
+        '''
+        
 
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
@@ -343,16 +350,23 @@ class CornersProblem(search.SearchProblem):
         successors = []
         cost = 1
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            x,y = state
+            x,y = state['position']
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             hitsWall = self.walls[nextx][nexty]
             if not(hitsWall):
-                succ = ((nextx, nexty), action, cost)
-                successors.append(succ)
 
+                newCornerList = state['pellets']
+
+                if (nextx, nexty) in state['pellets']:
+                    newCornerList = [ corner for corner in state['pellets'] if corner != (nextx, nexty)]
+                
+                succ = ({'position':(nextx, nexty), 'pellets': newCornerList}, action, cost)
+                successors.append(succ)
+            
         self._expanded += 1 # DO NOT CHANGE
         return successors
+
 
     def getCostOfActions(self, actions):
         """
@@ -367,6 +381,9 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+import math
+import search
+import sys
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -386,8 +403,36 @@ def cornersHeuristic(state, problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
-    
-    return 0
+
+    total = 0
+    pos = state['position']
+    copyPellets = []
+    for pellet in state['pellets']:
+        copyPellets.append(pellet)
+
+    while (len(copyPellets) > 0):
+        minimumDist = sys.maxsize
+        minimumPellet = None
+        for pellet in copyPellets:
+            d = manDist(pos, pellet)
+            if (d < minimumDist):
+                minimumDist = d
+                minimumPellet = pellet
+
+        copyPellets.remove(minimumPellet)
+        pos = minimumPellet
+        total += minimumDist
+
+    return total
+
+
+def manDist(start, goal):
+    x1, y1 = start
+    x2, y2 = goal
+    dx = abs(x1 - x2)
+    dy = abs(y1 - y2)
+    return dx+dy
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -484,7 +529,42 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
+    iState = problem.startingGameState
+    walls = problem.walls
+    pellets = foodGrid.asList()
+
+    if len(pellets) == 0:
+        return 0
+    else:
+
+        total = 0
+
+        furthestPel = tuple()
+        furthestDist = 0
+
+        for pellet in pellets:
+            tempDist = manDist(position, pellet)
+
+            total += tempDist/len(foodGrid.asList())
+        # return total
 
 
-    return 0
+        # for pellet in pellets:
+        #     furthestDist = max(furthestDist, findDistInMazeBFS(iState, position, walls, iState))
+        # print(furthestDist)
+
+        # # closestDist = 99999
+        # # furthest = 0
+        
+        return total
+
+
+def findDistInMazeBFS(start, goal, walls, gameState):
+    # print(start)
+    # x1,x2 = start
+    # y1,y2 = goal
+    # assert not walls[x1][y1], 'point1 is a wall: ' + str(start)
+    # assert not walls[x2][y2], 'point2 is a wall: ' + str(goal)
+    problem  = PositionSearchProblem(gameState, start=start, goal=goal, warn=False,visualize=False)
+    return len(search.bfs(problem))
 
