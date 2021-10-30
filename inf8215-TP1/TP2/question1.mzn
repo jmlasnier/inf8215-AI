@@ -10,6 +10,12 @@ array[1..r, 1..c] of 0..r*c: knownpositions;  % known number of insects, 0 appea
 array[1..r, 1..c] of var 1..r*c: x; % the final garden grid (decision variable)
 
 
+constraint forall(k in 1..r)(sum(i in 1..c)(x[k,i]) == rowinsects[k]);
+constraint forall(k in 1..c)(sum(i in 1..r)(x[i,k]) == colinsects[k]);
+
+
+solve satisfy;
+
 output [
   "["
 ]
