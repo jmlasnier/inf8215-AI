@@ -15,7 +15,18 @@ array[1..n] of int: cols;
 % decision variables
 array[1..n,1..n] of var 0..P: x;
 
+% nombre total de plantes par colonnes et par rangees
+constraint forall(k in 1..n)(sum(i in 1..n)(x[k,i]==P) == rows[k]);
+constraint forall(k in 1..n)(sum(i in 1..n)(x[i,k]==P) == cols[k]);
 
+% plantes ne doivent pas se toucher (etre voisin)(verti, horizon ou diag)
+
+
+% plante doit avoir une lampe solaire direct a cote (verti ou horizon)
+
+
+% chaque lampe doit avoir au moins 1 plante direct a cote (verti ou horizon)
+solve satisfy;
 
 output 
 [
