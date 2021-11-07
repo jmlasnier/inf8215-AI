@@ -20,8 +20,36 @@ array[1..n_nurse,1..n_day,1..n_work_period] of int: preference; % Work preferenc
 array[1..n_nurse,1..n_day,1..n_work_period] of var 0..1: x; % work period [MATIN, SOIREE, NUIT, REPOS]
 var int: sum_preference;
 
+%Constraints
 
 
+% %OK 4- 1 periode par jour par infirmière
+constraint forall(i in 1..n_nurse, j in 1..n_day)(sum( k in 1..n_work_period)(x[i,j,k])==1);
+
+% %OK 5- max 36hrs par semaine pour une infirmière
+constraint forall(i in 1..n_nurse)(sum(j in 1..n_day, k in 1..n_work_period where k!=REPOS)(x[i,j,k])*dur_work_period <=36*n_week);
+
+% %OK 6- can work min 4 jours dans la semaine
+constraint forall(i in 1..n_nurse)(sum(j in 1..n_day, k in 1..n_work_period where k!=REPOS)(x[i,j,k])>=4);
+
+% %toVerif 7- jour j=nuit, alors obligé d'avoir jour j+1 = repos
+constraint forall(i in 1..n_nurse, j in 1..n_day, k in 1..n_work_period)(if i+1<=n_nurse then x[i,j,NUIT]=1 -> x[i+1,j,REPOS]=1 endif);
+
+% %toVerif 8- sequence repos-travail-repos interdit
+constraint forall(i in 1..n_nurse, j in 1..n_day, k in 1..n_work_period)(if i+2 <=n_nurse then (if x[i,j,4]=1 /\ x[i+1,j,4]=0 then x[i+2,j,4]=0 endif)endif);
+
+% %OK 9- ne peut pas work plus de 3 jours consécutifs
+constraint forall(i in 1..n_nurse, j in 1..n_day, k in 1..n_work_period)(if j+3<=n_day then(if x[i,j,4]=0 /\ x[i,j+1,4]=0 /\ x[i,j+2,4]=0 then x[i,j+3,4]=1 endif)endif);
+
+% % TODO respecter demande_minimums de l'hopital
+constraint forall(j in 1..n_day, k in 1..n_work_period where k!=4)(sum(i in 1..n_nurse)(x[i,j,k]) >= demande_min[j, k]);
+
+% %TODO prioriser les préférences des infirmières
+% %utiliser la somme des préférence pour maximiser la valeur totale.
+sum_preference = sum(i in 1..n_nurse, j in 1..n_day, k in 1..n_work_period)(x[i,j,k]*preference[i,j,k]);
+
+% solve satisfy;
+solve maximize sum_preference;
 
 output
 [
