@@ -45,9 +45,17 @@ class MyAgent(Agent):
         print("player:", player)
         print("step:", step)
         print("time left:", time_left if time_left else '+inf')
-
+        
         # TODO: implement your agent and return an action for the current step.
-        pass
+        player_pos = percepts['pawns'][player]
+        move = {'up':('P', player_pos[0]-1, player_pos[1]),
+                'down':('P', player_pos[0]+1, player_pos[1]),
+                'left':('P', player_pos[0], player_pos[1]-1),
+                'right':('P', player_pos[0], player_pos[1]+1)}
+        
+        
+        return move['up']
+        # pass
 
 
 if __name__ == "__main__":
