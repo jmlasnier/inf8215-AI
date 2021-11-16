@@ -55,6 +55,7 @@ class MyAgent(Agent):
                 'right':('P', player_pos[0], player_pos[1]+1)}
         
         board = dict_to_board(percepts)
+        
         # call apha-beta search
         _, move = h_alphabeta_search(board, player, 2, heuristic)
         print(move)
