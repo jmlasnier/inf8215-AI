@@ -55,16 +55,15 @@ class MyAgent(Agent):
                 'right':('P', player_pos[0], player_pos[1]+1)}
         
         board = dict_to_board(percepts)
-
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player)
+        _, move = h_alphabeta_search(board, player, 2, heuristic)
         print(move)
         return move
         # return move['left']
         # pass
 
 
-def h_alphabeta_search(board, player, max_depth=6, h=lambda board, player: 0):
+def h_alphabeta_search(board, player, max_depth=6, h=lambda s , p: 0):
     """Search game to determine best action; use alpha-beta pruning.
     This version searches all the way to the leaves."""
 
@@ -86,7 +85,7 @@ def h_alphabeta_search(board, player, max_depth=6, h=lambda board, player: 0):
                 alpha = max(alpha, v)
             if v >= beta:
                 return v, move
-            return v, move
+        return v, move
 
     def min_value(board, alpha, beta, depth):
         # TODO: include a recursive call to min_value function
@@ -104,14 +103,24 @@ def h_alphabeta_search(board, player, max_depth=6, h=lambda board, player: 0):
                 beta = min(beta, v)
             if v <= alpha:
                 return v, move
-            return v, move
+        return v, move
 
-    
-    return max_value(board, -math.inf, math.inf, 0)
+    # print(max_depth)
+    return max_value(board, -math.inf, math.inf, max_depth )
 
 def cutoff_depth(d):
     """A cutoff function that searches to depth d."""
     return lambda board, depth: depth > d
+
+def heuristic(board, player):
+    score = board.get_score()
+    print('Score:', score)
+    sp = board.get_shortest_path(player)
+    print('Shortest_path:', len(sp))
+    if len(sp)==1:
+        score+=1000
+    return score
+
 
 if __name__ == "__main__":
     agent_main(MyAgent())
