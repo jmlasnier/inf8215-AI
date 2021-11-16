@@ -18,6 +18,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 """
 
 from quoridor import *
+import math
 
 
 class MyAgent(Agent):
@@ -53,10 +54,64 @@ class MyAgent(Agent):
                 'left':('P', player_pos[0], player_pos[1]-1),
                 'right':('P', player_pos[0], player_pos[1]+1)}
         
-        
-        return move['up']
+        board = dict_to_board(percepts)
+
+        # call apha-beta search
+        _, move = h_alphabeta_search(board, player)
+        print(move)
+        return move
+        # return move['left']
         # pass
 
+
+def h_alphabeta_search(board, player, max_depth=6, h=lambda board, player: 0):
+    """Search game to determine best action; use alpha-beta pruning.
+    This version searches all the way to the leaves."""
+
+    def max_value(board, alpha, beta, depth):
+        # TODO: include a recursive call to min_value function
+        # raise Exception("Function not implemented")
+        if board.is_finished():
+            return board.get_score(player), None
+        
+        if depth > max_depth:
+            return h(board, player), None
+        
+        v, move = -math.inf, None
+        for a in board.get_actions(player):
+            transition = board.clone().play_action(a, player)
+            v2, _ = min_value(transition, alpha, beta, depth+1)
+            if v2 > v:
+                v, move = v2, a
+                alpha = max(alpha, v)
+            if v >= beta:
+                return v, move
+            return v, move
+
+    def min_value(board, alpha, beta, depth):
+        # TODO: include a recursive call to min_value function
+        # raise Exception("Function not implemented")
+        if board.is_finished():
+            return board.get_score(1 - player), None
+        if depth > max_depth:
+            return h(board, 1 - player), None
+        v, move = math.inf, None
+        for a in board.get_actions(1 - player):
+            transition = board.clone().play_action(a, 1 - player)
+            v2, _ = max_value(transition, alpha, beta, depth+1)
+            if v2 < v:
+                v, move = v2, a
+                beta = min(beta, v)
+            if v <= alpha:
+                return v, move
+            return v, move
+
+    
+    return max_value(board, -math.inf, math.inf, 0)
+
+def cutoff_depth(d):
+    """A cutoff function that searches to depth d."""
+    return lambda board, depth: depth > d
 
 if __name__ == "__main__":
     agent_main(MyAgent())
