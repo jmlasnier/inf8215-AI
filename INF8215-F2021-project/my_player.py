@@ -55,9 +55,17 @@ class MyAgent(Agent):
                 'right':('P', player_pos[0], player_pos[1]+1)}
         
         board = dict_to_board(percepts)
+        # movelist = board.get_actions(player)
         
+        shortestP = board.get_shortest_path(player)
+        print(shortestP)
+        if len(shortestP) == 1:
+            if player==0:
+                return move['down']
+            elif player==1:
+                return move['up']
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player, 2, heuristic)
+        _, move = h_alphabeta_search(board, player, 7, heuristic)
         print(move)
         return move
         # return move['left']
@@ -94,7 +102,7 @@ def h_alphabeta_search(board, player, max_depth=6, h=lambda s , p: 0):
         if board.is_finished():
             return board.get_score(1 - player), None
         if depth > max_depth:
-            return h(board, 1 - player), None
+            return h(board, player), None
         v, move = math.inf, None
         for a in board.get_actions(1 - player):
             transition = board.clone().play_action(a, 1 - player)
@@ -114,13 +122,22 @@ def cutoff_depth(d):
     return lambda board, depth: depth > d
 
 def heuristic(board, player):
-    score = board.get_score()
-    print('Score:', score)
-    sp = board.get_shortest_path(player)
-    print('Shortest_path:', len(sp))
-    if len(sp)==1:
-        score+=1000
-    return score
+    handicap_score = 4
+    pourcent_score = 1
+    pourcent_wall = 0
+    score = board.get_score(player) - handicap_score
+    
+    if len(board.get_shortest_path(1-player)) < 5:
+        return len(board.get_shortest_path(1-player)) * 100
+
+    
+    
+    our_wall_n = board.nb_walls[player]
+    ennemy_wall_n = board.nb_walls[1-player]
+    wall_ratio = our_wall_n-ennemy_wall_n
+        
+    
+    return score * pourcent_score + wall_ratio * pourcent_wall
 
 
 if __name__ == "__main__":
