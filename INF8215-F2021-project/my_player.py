@@ -65,7 +65,7 @@ class MyAgent(Agent):
             elif player==1:
                 return move['up']
         # call apha-beta search
-        # _, move = h_alphabeta_search(board, player, 2, heuristic)
+        # _, move = h_alphabeta_search(board, player, 1, heuristic)
         move = mcts(board, player, 5)
         print("move chosen :")
         print(move)
@@ -147,94 +147,116 @@ def heuristic(board : Board, player):
 
 
 
-def mcts(current_state, player, max_sim):
-    t = initTree(current_state, player)
-    for _ in range(max_sim):
-        n_leaf = select(t)
-        n_child = expend(n_leaf, t, player)
-        v = simulate(n_child, player)
-        backpropagate(v, n_child)
+def mcts(board, player, max_sim):
+    rootNode = initTree(board, player)
+    for i in range(max_sim):
+        print("select")
+        promisingNode = select(rootNode)
+        print("expend")
+        nodeToExplore = expend(promisingNode)
+        print("simulate")
+        score = simulate(nodeToExplore)
+        print("backpropagate")
+        backpropagate(score, nodeToExplore)
+        print(f"end of iteration {i}")
     
-    return bestAction(t)
+    return bestAction(rootNode)
 
-class Node():
-    def __init__(self, state, sims_count, sims_score, action_made, parent):
-        self.state = state
+
+class State():
+    def __init__(self, board : Board, player, action_played_to_get_here = None, sims_count = 0, sims_score = 0):
+        self.board = board
         self.sims_count = sims_count
         self.sims_score = sims_score
-        self.action_made = action_made
+        self.player = player
+        self.action_played_to_get_here = action_played_to_get_here
+
+
+class Node():
+    def __init__(self, state : State, parent = None, children = []):
+        self.state = state
         self.parent = parent
+        self.children = children
 
 
-def initTree(current_state, player):
-    sims_count = 0
-    sims_score = 0
-    root = Node(current_state, sims_count, sims_score, None, None)
-    tree = []
-    for a in current_state.get_actions(player):
-        transition = current_state.clone().play_action(a, player)
-        child = Node(transition, sims_count, sims_score, a, root)
-        tree.append(child)
+def initTree(board : Board, player):
+    rootState = State(board, player)
+    root = Node(rootState)
+    # for a in board.get_actions(player):
+    #     transition = board.clone().play_action(a, player)
+    #     child = Node(transition, sims_count, sims_score, a, root)
+    #     tree.append(child)
 
-    selection = random.choice(tree)
-    v = simulate(selection, player)
-    backpropagate(v, selection)
+    # selection = random.choice(tree)
+    # v = simulate(selection, player)
+    # backpropagate(v, selection)
 
-    return tree
+    return root
 
 
-def select(t):
+def select(rootNode : Node):
     from numpy import log as ln
-    max_ucb_node = None
-    max_ucb = -math.inf
-    for node in t:
-        if node.sims_count == 0 or node.parent.sims_count == 0:
-            ucb = 0 
-        else:
-            ucb = (node.sims_score / node.sims_count) + (math.sqrt(2) * math.sqrt(ln(node.parent.sims_count) / node.sims_count))
-        
-        if ucb > max_ucb:
-            max_ucb_node = node
-            max_ucb = ucb
+    node : Node = rootNode
+    while(len(node.children) != 0):
+        max_ucb_node = None
+        max_ucb = -math.inf
+        for child in node.children:
+            # if node.sims_count == 0 or node.parent.sims_count == 0:
+            ucb = math.inf
+            if child.state.sims_count != 0:
+                ucb = (child.state.sims_score / child.state.sims_count) + (math.sqrt(2) * math.sqrt(ln(child.parent.state.sims_count) / child.state.sims_count))
+            
+            if ucb > max_ucb:
+                max_ucb_node = child
+                max_ucb = ucb
 
-    return max_ucb_node
+        node = max_ucb_node
 
-
-def expend(n_leaf, tree, player):
-    if n_leaf.sims_count > 0:
-        for a in n_leaf.get_actions(player):
-            transition = n_leaf.clone().play_action(a, player)
-            child = Node(transition, 0, 0, a, n_leaf)
-            tree.append(child)
+    return node
 
 
-def simulate(n_child, player):
-    state = n_child.state.clone()
-    playing = player
+def expend(n_leaf: Node):
+    player = n_leaf.state.player
+    for a in n_leaf.state.board.get_actions(player):
+        transition = n_leaf.state.board.clone().play_action(a, player)
+        newState = State(transition, 1 - player, a)
+        newNode = Node(newState, n_leaf, [])
+        n_leaf.children.append(newNode)
 
-    while not state.is_finished:
-        playing = 1 - playing
-        rnd_action = random.choice(state.get_actions(playing)) #heurisitc instead ?
-        state = state.play_action(rnd_action)
+    n_toExplore = n_leaf
+    if len(n_leaf.children) > 0:
+        n_toExplore = random.choice(n_leaf.children)
     
-    return state.get_score(player)
+    return n_toExplore
 
-def backpropagate(v, n_child):
+
+def simulate(n_explore : Node):
+    board = n_explore.state.board.clone()
+    player = n_explore.state.player
+    while not board.is_finished:
+        rnd_action = random.choice(board.get_actions(player)) #heurisitc instead ?
+        board = board.play_action(rnd_action)
+        player = 1 - player
+    
+    return board.get_score(player)
+
+def backpropagate(v, n_child : Node):
     child = n_child
 
-    while child.parent is not None:
-        child.sims_count += 1
-        child.sims_score += v
+    while child is not None:
+        child.state.sims_count += 1
+        child.state.sims_score += v
         child = child.parent
 
 
-def bestAction(tree):
-    max_sims_count = 0
-    best_action = None
-    for node in tree:
-        if node.sims_count > max_sims_count:
-            best_action = node.action_made
-            max_sims_count = node.sims_count
+def bestAction(rootNode : Node):
+    print(rootNode.state.board)
+    max_sims_count = -math.inf
+    best_action = rootNode.children[0].state.action_played_to_get_here
+    for child in rootNode.children:
+        if child.state.sims_count > max_sims_count:
+            best_action = child.state.action_played_to_get_here
+            max_sims_count = child.state.sims_count
     
     return best_action
 
