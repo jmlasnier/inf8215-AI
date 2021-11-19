@@ -49,41 +49,50 @@ class MyAgent(Agent):
         
         # TODO: implement your agent and return an action for the current step.
         player_pos = percepts['pawns'][player]
+        #dict pour les mouvements possibles
         move = {'up':('P', player_pos[0]-1, player_pos[1]),
                 'down':('P', player_pos[0]+1, player_pos[1]),
                 'left':('P', player_pos[0], player_pos[1]-1),
                 'right':('P', player_pos[0], player_pos[1]+1)}
-        
+        #board variable
         board = dict_to_board(percepts)
-        # movelist = board.get_actions(player)
         
+        #Var to move agent towards goal
+        if player==0:
+            towards_goal = move['down']
+        elif player==1:
+            towards_goal = move['up']
+        
+        actions = remove_useless_actions(board, player)
+        
+        
+        #If 1 step from victory, go for it!
         shortestP = board.get_shortest_path(player)
-        print(shortestP)
-        if len(shortestP) == 1:
-            if player==0:
-                return move['down']
-            elif player==1:
-                return move['up']
+        #Move forwards for 3 first move if possible (strategy)
+        if ((step < 5) and (board.is_action_valid(towards_goal, player))) or (len(shortestP) == 1):
+            return towards_goal
+        
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player, 7, heuristic)
+        _, move = h_alphabeta_search(board, player, 0,step,  heuristic)
         print(move)
         return move
         # return move['left']
         # pass
 
 
-def h_alphabeta_search(board, player, max_depth=6, h=lambda s , p: 0):
+def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
     """Search game to determine best action; use alpha-beta pruning.
     This version searches all the way to the leaves."""
 
     def max_value(board, alpha, beta, depth):
+        print('MAX')
         # TODO: include a recursive call to min_value function
         # raise Exception("Function not implemented")
         if board.is_finished():
             return board.get_score(player), None
         
         if depth > max_depth:
-            return h(board, player), None
+            return h(board, player, step), None
         
         v, move = -math.inf, None
         for a in board.get_actions(player):
@@ -97,12 +106,13 @@ def h_alphabeta_search(board, player, max_depth=6, h=lambda s , p: 0):
         return v, move
 
     def min_value(board, alpha, beta, depth):
+        # print('MIN')
         # TODO: include a recursive call to min_value function
         # raise Exception("Function not implemented")
         if board.is_finished():
             return board.get_score(1 - player), None
         if depth > max_depth:
-            return h(board, player), None
+            return h(board, player, step), None
         v, move = math.inf, None
         for a in board.get_actions(1 - player):
             transition = board.clone().play_action(a, 1 - player)
@@ -115,30 +125,48 @@ def h_alphabeta_search(board, player, max_depth=6, h=lambda s , p: 0):
         return v, move
 
     # print(max_depth)
-    return max_value(board, -math.inf, math.inf, max_depth )
+    return max_value(board, -math.inf, math.inf, 0 )
 
 def cutoff_depth(d):
     """A cutoff function that searches to depth d."""
     return lambda board, depth: depth > d
 
-def heuristic(board, player):
-    handicap_score = 4
+def heuristic(board: Board, player, step):
+    handicap_score = 1
     pourcent_score = 1
-    pourcent_wall = 0
+    pourcent_wall = 2
     score = board.get_score(player) - handicap_score
     
     if len(board.get_shortest_path(1-player)) < 5:
         return len(board.get_shortest_path(1-player)) * 100
 
-    
-    
+    #prioriser les déplacements en début de partie
+    # if step < 10:
+        # return 
+
     our_wall_n = board.nb_walls[player]
     ennemy_wall_n = board.nb_walls[1-player]
     wall_ratio = our_wall_n-ennemy_wall_n
-        
     
     return score * pourcent_score + wall_ratio * pourcent_wall
 
+def remove_useless_actions(board: Board, player):
+    actions = board.get_actions(player)
+    # print(actions)
+    
+    hwalls = board.horiz_walls
+    vwalls = board.verti_walls
+    print('===================')
+    print(len(hwalls))
+    # hwalls.append(len(vwalls))
+    print(len(hwalls))
+    
+    
+    return actions
+
+#========================UTILS========================#
+def manhattan(pos1, pos2):
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
 if __name__ == "__main__":
     agent_main(MyAgent())
