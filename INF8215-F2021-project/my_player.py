@@ -62,9 +62,7 @@ class MyAgent(Agent):
             towards_goal = move['down']
         elif player==1:
             towards_goal = move['up']
-        
-        actions = remove_useless_actions(board, player)
-        
+               
         
         #If 1 step from victory, go for it!
         shortestP = board.get_shortest_path(player)
@@ -73,21 +71,15 @@ class MyAgent(Agent):
             return towards_goal
         
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player, 0,step,  heuristic)
+        _, move = h_alphabeta_search(board, player, 1,step,  heuristic)
         print(move)
         return move
-        # return move['left']
-        # pass
 
 
 def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
-    """Search game to determine best action; use alpha-beta pruning.
-    This version searches all the way to the leaves."""
 
     def max_value(board, alpha, beta, depth):
-        print('MAX')
-        # TODO: include a recursive call to min_value function
-        # raise Exception("Function not implemented")
+        # print('MAX')
         if board.is_finished():
             return board.get_score(player), None
         
@@ -95,7 +87,7 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
             return h(board, player, step), None
         
         v, move = -math.inf, None
-        for a in board.get_actions(player):
+        for a in remove_useless_actions(board, player):
             transition = board.clone().play_action(a, player)
             v2, _ = min_value(transition, alpha, beta, depth+1)
             if v2 > v:
@@ -105,7 +97,7 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
                 return v, move
         return v, move
 
-    def min_value(board, alpha, beta, depth):
+    def min_value(board: Board, alpha, beta, depth):
         # print('MIN')
         # TODO: include a recursive call to min_value function
         # raise Exception("Function not implemented")
@@ -114,7 +106,7 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
         if depth > max_depth:
             return h(board, player, step), None
         v, move = math.inf, None
-        for a in board.get_actions(1 - player):
+        for a in remove_useless_actions(board, 1-player):
             transition = board.clone().play_action(a, 1 - player)
             v2, _ = max_value(transition, alpha, beta, depth+1)
             if v2 < v:
@@ -137,8 +129,10 @@ def heuristic(board: Board, player, step):
     pourcent_wall = 2
     score = board.get_score(player) - handicap_score
     
-    if len(board.get_shortest_path(1-player)) < 5:
-        return len(board.get_shortest_path(1-player)) * 100
+    
+    if len(board.get_shortest_path(1-player)) < 3:
+        print('============================')
+        return -(len(board.get_shortest_path(1-player)) * 100)
 
     #prioriser les déplacements en début de partie
     # if step < 10:
@@ -147,22 +141,35 @@ def heuristic(board: Board, player, step):
     our_wall_n = board.nb_walls[player]
     ennemy_wall_n = board.nb_walls[1-player]
     wall_ratio = our_wall_n-ennemy_wall_n
-    
-    return score * pourcent_score + wall_ratio * pourcent_wall
+    heur = score * pourcent_score + wall_ratio * pourcent_wall
+    # print(heur)
+    return heur
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
-    # print(actions)
+    ennemy_pos = board.pawns[1-player]
+    my_pos = board.pawns[player]
+    walls = board.horiz_walls + board.verti_walls
+    distance = 2
     
-    hwalls = board.horiz_walls
-    vwalls = board.verti_walls
-    print('===================')
-    print(len(hwalls))
-    # hwalls.append(len(vwalls))
-    print(len(hwalls))
+    good_action=[]   
+    for a in actions:
+        a_pos = (a[1],a[2])
+        #keep moving actions
+        if a[0]=='P':
+            good_action.append(a)
+        #keep walls around ennemy
+        if manhattan(a_pos, ennemy_pos) < distance:
+            good_action.append(a)
+        #keep walls around my_player
+        if manhattan(a_pos, my_pos) < distance:
+            good_action.append(a)
+        #keep walls close to other walls
+        for w in walls:
+            if manhattan(a_pos, w)<distance:
+                good_action.append(a)
     
-    
-    return actions
+    return good_action
 
 #========================UTILS========================#
 def manhattan(pos1, pos2):
