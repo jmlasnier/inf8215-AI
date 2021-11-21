@@ -125,8 +125,8 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
         if depth > max_depth:
             return h(board, player, step), None
         v, move = math.inf, None
-        for a in remove_useless_actions(board, player):
-            transition = board.clone().play_action(a, player)
+        for a in remove_useless_actions(board, 1 - player):
+            transition = board.clone().play_action(a, 1 - player)
             v2, _ = max_value(transition, alpha, beta, depth+1)
             if v2 < v:
                 v, move = v2, a
@@ -143,13 +143,25 @@ def cutoff_depth(d):
     return lambda board, depth: depth > d
 
 def heuristic(board: Board, player, step):
+    #[score, path_player, path_oppenent, walls, man]
+
+    percentage = [0.3, 0.3, 0.2, 0.1, 0.1]
+
+    # if player == 0:
+    #     if board.pawns[1 - player][0] < 5:
+    #         percentage = [0.1, 0.1, 0.6, 0.1, 0.1]
+    # else:
+    #     if board.pawns[player][0] > 3:
+    #         percentage = [0.1, 0.1, 0.6, 0.1, 0.1]
+
+
     sh_path_player = -len(board.get_shortest_path(player))
     sh_path_opponent = len(board.get_shortest_path(1 - player))
     score = board.get_score(player) + sh_path_player
     walls = board.nb_walls[player] - board.nb_walls[1 - player]
     man = manhattan(board.pawns[player], board.pawns[1 - player])
 
-    return (score * 0.3 + sh_path_player * 0.3 + sh_path_opponent * 0.2 + walls * 0.1 + man * 0.1) * 100
+    return (score * percentage[0] + sh_path_player * percentage[1] + sh_path_opponent * percentage[2] + walls * percentage[3] + man * percentage[4]) * 100
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
@@ -174,8 +186,14 @@ def remove_useless_actions(board: Board, player):
         for w in walls:
             if manhattan(a_pos, w)<distance:
                 good_action.append(a)
+
+        #distinc list
+        unique_good_action = []
+        for x in good_action:
+            if x not in unique_good_action:
+                unique_good_action.append(x)
     
-    return good_action
+    return unique_good_action
 
 #========================UTILS========================#
 def manhattan(pos1, pos2):
