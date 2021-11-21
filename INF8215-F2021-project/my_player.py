@@ -187,11 +187,11 @@ def remove_useless_actions(board: Board, player):
             if manhattan(a_pos, w)<distance:
                 good_action.append(a)
 
-        #distinc list
-        unique_good_action = []
-        for x in good_action:
-            if x not in unique_good_action:
-                unique_good_action.append(x)
+    #distinc list
+    unique_good_action = []
+    for x in good_action:
+        if x not in unique_good_action:
+            unique_good_action.append(x)
     
     return unique_good_action
 
