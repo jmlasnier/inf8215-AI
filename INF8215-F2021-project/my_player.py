@@ -87,11 +87,7 @@ class MyAgent(Agent):
         #             return i[1]
 
         # call apha-beta search
-<<<<<<< HEAD
-        _, move = h_alphabeta_search(board, player, 3 ,step, heuristic)
-=======
         _, move = h_alphabeta_search(board, player, 1 ,step, heuristic)
->>>>>>> 5d9668d92e3e336e3eb5561209e79a7567517d25
         #print(move)
         # cache.append((minimal_state, move))
         # pickle.dump(cache, open("cache.p", "wb"))
