@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from quoridor import *
 import math
-
+import pickle
 
 class MyAgent(Agent):
 
@@ -69,10 +69,23 @@ class MyAgent(Agent):
         #Move forwards for 3 first move if possible (strategy)
         if ((step < 5) and (board.is_action_valid(towards_goal, player))) or (len(shortestP) == 1):
             return towards_goal
+
         
+        minimal_state = (board.pawns, board.horiz_walls, board.verti_walls)
+
+        #cache array of (minimal_state, move)
+        cache = pickle.load(open("cache.p", "rb"))
+        for i in cache:
+            if i[0] == minimal_state:
+                print("found move in cache!")
+                if board.is_action_valid(i[1], player):
+                    return i[1]
+
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player, 1,step,  heuristic)
-        print(move)
+        _, move = h_alphabeta_search(board, player, 0 ,step, heuristic)
+        #print(move)
+        cache.append((minimal_state, move))
+        pickle.dump(cache, open("cache.p", "wb"))
         return move
 
 
@@ -87,6 +100,7 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
             return h(board, player, step), None
         
         v, move = -math.inf, None
+        #print(len(remove_useless_actions(board, player)))
         for a in remove_useless_actions(board, player):
             transition = board.clone().play_action(a, player)
             v2, _ = min_value(transition, alpha, beta, depth+1)
@@ -124,26 +138,13 @@ def cutoff_depth(d):
     return lambda board, depth: depth > d
 
 def heuristic(board: Board, player, step):
-    handicap_score = 1
-    pourcent_score = 1
-    pourcent_wall = 2
-    score = board.get_score(player) - handicap_score
-    
-    
-    if len(board.get_shortest_path(1-player)) < 3:
-        print('============================')
-        return -(len(board.get_shortest_path(1-player)) * 100)
+    sh_path_player = -len(board.get_shortest_path(player))
+    sh_path_opponent = len(board.get_shortest_path(1 - player))
+    score = board.get_score(player) + sh_path_player
+    walls = board.nb_walls[1 - player] - board.nb_walls[player]
+    man = manhattan(board.pawns[player], board.pawns[1 - player])
 
-    #prioriser les déplacements en début de partie
-    # if step < 10:
-        # return 
-
-    our_wall_n = board.nb_walls[player]
-    ennemy_wall_n = board.nb_walls[1-player]
-    wall_ratio = our_wall_n-ennemy_wall_n
-    heur = score * pourcent_score + wall_ratio * pourcent_wall
-    # print(heur)
-    return heur
+    return (score * 0.3 + sh_path_player * 0.1 + sh_path_opponent * 0.3 + walls * 0.2 + man * 0.1) * 100
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
