@@ -50,7 +50,7 @@ class MyAgent(Agent):
         # TODO: implement your agent and return an action for the current step.
         player_pos = percepts['pawns'][player]
         #dict pour les mouvements possibles
-        move = {'up':('P', player_pos[0]-1, player_pos[1]),
+        move_dict = {'up':('P', player_pos[0]-1, player_pos[1]),
                 'down':('P', player_pos[0]+1, player_pos[1]),
                 'left':('P', player_pos[0], player_pos[1]-1),
                 'right':('P', player_pos[0], player_pos[1]+1)}
@@ -59,37 +59,38 @@ class MyAgent(Agent):
         
         #Var to move agent towards goal
         if player==0:
-            towards_goal = move['down']
+            towards_goal = move_dict['down']
         elif player==1:
-            towards_goal = move['up']
+            towards_goal = move_dict['up']
                
         
         
         shortestP = board.get_shortest_path(player)
+        towards_goal = ('P', shortestP[0][0], shortestP[0][1])
         #Move forwards for 3 first move if possible (strategy)
         if (step < 5) and (board.is_action_valid(towards_goal, player)):
             return towards_goal
 
         #If 1 step from victory, go for it!
         if len(shortestP)==1:
-            return ('P', shortestP[0][0], shortestP[0][1])
+            return towards_goal
             
         
         minimal_state = (board.pawns, board.horiz_walls, board.verti_walls)
 
         #cache array of (minimal_state, move)
-        cache = pickle.load(open("cache.p", "rb"))
-        for i in cache:
-            if i[0] == minimal_state:
-                print("found move in cache!")
-                if board.is_action_valid(i[1], player):
-                    return i[1]
+        # cache = pickle.load(open("cache.p", "rb"))
+        # for i in cache:
+        #     if i[0] == minimal_state:
+        #         print("found move in cache!")
+        #         if board.is_action_valid(i[1], player):
+        #             return i[1]
 
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player, 0 ,step, heuristic)
+        _, move = h_alphabeta_search(board, player, 3 ,step, heuristic)
         #print(move)
-        cache.append((minimal_state, move))
-        pickle.dump(cache, open("cache.p", "wb"))
+        # cache.append((minimal_state, move))
+        # pickle.dump(cache, open("cache.p", "wb"))
         return move
 
 
