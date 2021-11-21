@@ -76,7 +76,7 @@ class MyAgent(Agent):
             return towards_goal
             
         
-        minimal_state = (board.pawns, board.horiz_walls, board.verti_walls)
+        minimal_state = (player, board.pawns, board.horiz_walls, board.verti_walls)
 
         #cache array of (minimal_state, move)
         # cache = pickle.load(open("cache.p", "rb"))
@@ -87,7 +87,11 @@ class MyAgent(Agent):
         #             return i[1]
 
         # call apha-beta search
+<<<<<<< HEAD
         _, move = h_alphabeta_search(board, player, 3 ,step, heuristic)
+=======
+        _, move = h_alphabeta_search(board, player, 1 ,step, heuristic)
+>>>>>>> 5d9668d92e3e336e3eb5561209e79a7567517d25
         #print(move)
         # cache.append((minimal_state, move))
         # pickle.dump(cache, open("cache.p", "wb"))
@@ -121,12 +125,12 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
         # TODO: include a recursive call to min_value function
         # raise Exception("Function not implemented")
         if board.is_finished():
-            return board.get_score(1 - player), None
+            return board.get_score(player), None
         if depth > max_depth:
             return h(board, player, step), None
         v, move = math.inf, None
-        for a in remove_useless_actions(board, 1-player):
-            transition = board.clone().play_action(a, 1 - player)
+        for a in remove_useless_actions(board, player):
+            transition = board.clone().play_action(a, player)
             v2, _ = max_value(transition, alpha, beta, depth+1)
             if v2 < v:
                 v, move = v2, a
@@ -146,10 +150,10 @@ def heuristic(board: Board, player, step):
     sh_path_player = -len(board.get_shortest_path(player))
     sh_path_opponent = len(board.get_shortest_path(1 - player))
     score = board.get_score(player) + sh_path_player
-    walls = board.nb_walls[1 - player] - board.nb_walls[player]
+    walls = board.nb_walls[player] - board.nb_walls[1 - player]
     man = manhattan(board.pawns[player], board.pawns[1 - player])
 
-    return (score * 0.3 + sh_path_player * 0.1 + sh_path_opponent * 0.3 + walls * 0.2 + man * 0.1) * 100
+    return (score * 0.3 + sh_path_player * 0.3 + sh_path_opponent * 0.2 + walls * 0.1 + man * 0.1) * 100
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
