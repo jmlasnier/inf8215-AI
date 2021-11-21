@@ -165,10 +165,10 @@ def remove_useless_actions(board: Board, player):
         if a[0]=='P':
             good_action.append(a)
         #keep walls around ennemy
-        if manhattan(a_pos, ennemy_pos) < distance:
+        if walls_around_player(a_pos, ennemy_pos):
             good_action.append(a)
         #keep walls around my_player
-        if manhattan(a_pos, my_pos) < distance:
+        if walls_around_player(a_pos, my_pos):
             good_action.append(a)
         #keep walls close to other walls
         for w in walls:
@@ -180,6 +180,10 @@ def remove_useless_actions(board: Board, player):
 #========================UTILS========================#
 def manhattan(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
+def walls_around_player(action, player):
+    #is wall next to player
+    return (-2 <= (action[0] - player[0]) <=1) and (-2 <= (action[1]-player[1]) <= 1)
 
 if __name__ == "__main__":
     agent_main(MyAgent())
