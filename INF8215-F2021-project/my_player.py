@@ -64,12 +64,16 @@ class MyAgent(Agent):
             towards_goal = move['up']
                
         
-        #If 1 step from victory, go for it!
+        
         shortestP = board.get_shortest_path(player)
         #Move forwards for 3 first move if possible (strategy)
-        if ((step < 5) and (board.is_action_valid(towards_goal, player))) or (len(shortestP) == 1):
+        if (step < 5) and (board.is_action_valid(towards_goal, player)):
             return towards_goal
 
+        #If 1 step from victory, go for it!
+        if len(shortestP)==1:
+            return ('P', shortestP[0][0], shortestP[0][1])
+            
         
         minimal_state = (board.pawns, board.horiz_walls, board.verti_walls)
 
