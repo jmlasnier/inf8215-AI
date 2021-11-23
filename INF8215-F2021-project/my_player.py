@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 """
+=======================================================================================================
+INF8215: Projet - Agent intelligent pour le jeu Quoridor
+
+Auteurs:
+-> William Balea       1904905
+-> Jean-Michel Lasnier 1905682
+=======================================================================================================
+
+
 Quoridor agent.
 Copyright (C) 2013, <<<<<<<<<<< YOUR NAMES HERE >>>>>>>>>>>
 
