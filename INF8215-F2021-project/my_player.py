@@ -44,40 +44,28 @@ class MyAgent(Agent):
         """
         #print("percept:", percepts)
         #print("player:", player)
-        #print("step:", step)
-        #print("time left:", time_left if time_left else '+inf')
+        print("step:", step)
+        print("time left:", time_left if time_left else '+inf')
         
         # TODO: implement your agent and return an action for the current step.
         player_pos = percepts['pawns'][player]
-        #dict pour les mouvements possibles
-        move_dict = {'up':('P', player_pos[0]-1, player_pos[1]),
-                'down':('P', player_pos[0]+1, player_pos[1]),
-                'left':('P', player_pos[0], player_pos[1]-1),
-                'right':('P', player_pos[0], player_pos[1]+1)}
+        
         #board variable
         board = dict_to_board(percepts)
-        
-        #Var to move agent towards goal
-        if player==0:
-            towards_goal = move_dict['down']
-        elif player==1:
-            towards_goal = move_dict['up']
-        
-        #change depth according to step
+                
+        #change depth according to step number and time left
         depth = 0
-        #print(f"step {step} timeleft {time_left}")
         if step > 10 and time_left > 60:
             depth =1
-        print('depth:', depth)
         
-        uaction=remove_useless_actions(board, player)
-        #print('==========', len(uaction))
-        #print(uaction)
-        #print('==========', len(uaction))
+        try:
+            shortestP = board.get_shortest_path(player)
+        except:
+            print('NoPath Exception')
+            shortestP = board.get_legal_pawn_moves(player)
         
-        shortestP = board.get_shortest_path(player)
         towards_goal = ('P', shortestP[0][0], shortestP[0][1])
-        #Move forwards for 3 first move if possible (strategy)
+        #Move forward for 2 first move if possible (strategy)
         if (step < 5) and (board.is_action_valid(towards_goal, player)):
             return towards_goal
 
@@ -86,8 +74,8 @@ class MyAgent(Agent):
             return towards_goal
             
         
-        minimal_state = (player, board.pawns, board.horiz_walls, board.verti_walls)
-
+        # Tentative de cache
+        # minimal_state = (player, board.pawns, board.horiz_walls, board.verti_walls)
         #cache array of (minimal_state, move)
         # cache = pickle.load(open("cache.p", "rb"))
         # for i in cache:
@@ -98,16 +86,13 @@ class MyAgent(Agent):
 
         # call apha-beta search
         _, move = h_alphabeta_search(board, player, depth ,step, heuristic)
-        #print('move: ',move)
-        # cache.append((minimal_state, move))
-        # pickle.dump(cache, open("cache.p", "wb"))
+        print('move: ',move)
         return move
 
 
 def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
 
     def max_value(board, alpha, beta, depth, act=None):
-        # print('MAX')
         if board.is_finished():
             return board.get_score(player), None
         
@@ -115,7 +100,6 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
             return h(board, player, step, act), None
         
         v, move = -math.inf, None
-        #print(len(remove_useless_actions(board, player)))
         for a in remove_useless_actions(board, player):
             transition = board.clone().play_action(a, player)
             v2, _ = min_value(transition, alpha, beta, depth+1, a)
@@ -127,9 +111,6 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
         return v, move
 
     def min_value(board: Board, alpha, beta, depth, act=None):
-        # print('MIN')
-        # TODO: include a recursive call to min_value function
-        # raise Exception("Function not implemented")
         if board.is_finished():
             return board.get_score(player), None
         if depth > max_depth:
@@ -145,7 +126,6 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
                 return v, move
         return v, move
 
-    # print(max_depth)
     return max_value(board, -math.inf, math.inf, 0)
 
 def cutoff_depth(d):
@@ -153,37 +133,35 @@ def cutoff_depth(d):
     return lambda board, depth: depth > d
 
 def heuristic(board: Board, player, step, act):
-    #[score, path_player, path_oppenent, walls, man]
-
+    #[sh_path_player, sh_path_opponent, wall_player, wall_ennemy]
     percentage = [2, 1.8, 0.5, 0.5, 0.4]
-    
-    percentage_player_plusproche = [3, 1.5, 1.5, 0.5]
-    percentage_ennemy_plusproche = [1.5, 1.6, 0.3, 0.3]
+    percentage_player_plusproche = [2.2, 1.5, 0.7, 0.5]
+    percentage_ennemy_plusproche = [1.7, 1.5, 0.4, 0.3]
     
     score = board.get_score(player)
-    # print(f"score {score}")
     if score >0:
         percentage = percentage_player_plusproche
     elif score< 0:
         percentage = percentage_ennemy_plusproche
 
-
-    
-    sh_path_player = -len(board.get_shortest_path(player))
-    sh_path_opponent = len(board.get_shortest_path(1 - player))
+    try:
+        sh_path_player = -len(board.get_shortest_path(player))
+        sh_path_opponent = len(board.get_shortest_path(1 - player))
+    except:
+        print('NoPathError')
+        sh_path_player = manhattan(board.pawns[player], board.goals[player])
+        sh_path_opponent = manhattan(board.pawns[1-player], board.goals[1-player])
+        
     wall_player = board.nb_walls[player]
     wall_ennemy = -board.nb_walls[1 - player]
     
-    heur_s = (sh_path_player * percentage[0] + sh_path_opponent * percentage[1] + wall_player * percentage[2] + wall_ennemy * percentage[3])
-    #print(act, heur_s,',' ,sh_path_player,',',percentage[0],',', sh_path_opponent ,',',percentage[1],',',walls,',',percentage[2])
-    return heur_s
+    return (sh_path_player * percentage[0] + sh_path_opponent * percentage[1] + wall_player * percentage[2] + wall_ennemy * percentage[3])
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
     ennemy_pos = board.pawns[1-player]
     my_pos = board.pawns[player]
     walls = board.horiz_walls + board.verti_walls
-    distance = 2
     
     good_action=[]   
     for a in actions:
@@ -199,9 +177,8 @@ def remove_useless_actions(board: Board, player):
             good_action.append(a)
         # #keep walls close to other walls
         # for w in walls:
-        #     if manhattan(a_pos, w)<distance:
+        #     if manhattan(a_pos, w)<1:
         #         good_action.append(a)
-
     
     return good_action
 
