@@ -42,10 +42,10 @@ class MyAgent(Agent):
           eg: ('WH', 5, 2) to put a horizontal wall on corridor (5,2)
           for more details, see `Board.get_actions()` in quoridor.py
         """
-        print("percept:", percepts)
-        print("player:", player)
-        print("step:", step)
-        print("time left:", time_left if time_left else '+inf')
+        #print("percept:", percepts)
+        #print("player:", player)
+        #print("step:", step)
+        #print("time left:", time_left if time_left else '+inf')
         
         # TODO: implement your agent and return an action for the current step.
         player_pos = percepts['pawns'][player]
@@ -65,14 +65,15 @@ class MyAgent(Agent):
         
         #change depth according to step
         depth = 0
-        if step > 20 and time_left > 60:
+        #print(f"step {step} timeleft {time_left}")
+        if step > 10 and time_left > 60:
             depth =1
         print('depth:', depth)
         
         uaction=remove_useless_actions(board, player)
-        print('==========', len(uaction))
-        print(uaction)
-        print('==========', len(uaction))
+        #print('==========', len(uaction))
+        #print(uaction)
+        #print('==========', len(uaction))
         
         shortestP = board.get_shortest_path(player)
         towards_goal = ('P', shortestP[0][0], shortestP[0][1])
@@ -97,7 +98,7 @@ class MyAgent(Agent):
 
         # call apha-beta search
         _, move = h_alphabeta_search(board, player, depth ,step, heuristic)
-        print('move: ',move)
+        #print('move: ',move)
         # cache.append((minimal_state, move))
         # pickle.dump(cache, open("cache.p", "wb"))
         return move
@@ -111,7 +112,7 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
             return board.get_score(player), None
         
         if depth > max_depth:
-            return h(board, player, step, act)
+            return h(board, player, step, act), None
         
         v, move = -math.inf, None
         #print(len(remove_useless_actions(board, player)))
@@ -154,12 +155,13 @@ def cutoff_depth(d):
 def heuristic(board: Board, player, step, act):
     #[score, path_player, path_oppenent, walls, man]
 
-    percentage = [2, 1.8, 0.5, 0.1]
+    percentage = [2, 1.8, 0.5, 0.5, 0.4]
     
-    percentage_player_plusproche = [2, 1.5, 1, 0.1]
-    percentage_ennemy_plusproche = [1.5, 1.6, 0.1, 0.1]
+    percentage_player_plusproche = [2, 1.5, 0.3, 0.5]
+    percentage_ennemy_plusproche = [1.5, 1.6, 0.8, 0.3]
     
     score = board.get_score(player)
+    # print(f"score {score}")
     if score >0:
         percentage = percentage_player_plusproche
     elif score< 0:
@@ -169,10 +171,11 @@ def heuristic(board: Board, player, step, act):
     
     sh_path_player = -len(board.get_shortest_path(player))
     sh_path_opponent = len(board.get_shortest_path(1 - player))
-    walls = board.nb_walls[player] - board.nb_walls[1 - player]
+    wall_player = board.nb_walls[player]
+    wall_ennemy = -board.nb_walls[1 - player]
     
-    heur_s = (sh_path_player * percentage[0] + sh_path_opponent * percentage[1] + walls * percentage[2])
-    print(act, heur_s,',' ,sh_path_player,',',percentage[0],',', sh_path_opponent ,',',percentage[1],',',walls,',',percentage[2])
+    heur_s = (sh_path_player * percentage[0] + sh_path_opponent * percentage[1] + wall_player * percentage[2] + wall_ennemy * percentage[3])
+    #print(act, heur_s,',' ,sh_path_player,',',percentage[0],',', sh_path_opponent ,',',percentage[1],',',walls,',',percentage[2])
     return heur_s
 
 def remove_useless_actions(board: Board, player):
