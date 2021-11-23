@@ -157,8 +157,8 @@ def heuristic(board: Board, player, step, act):
 
     percentage = [2, 1.8, 0.5, 0.5, 0.4]
     
-    percentage_player_plusproche = [2, 1.5, 0.3, 0.5]
-    percentage_ennemy_plusproche = [1.5, 1.6, 0.8, 0.3]
+    percentage_player_plusproche = [3, 1.5, 1.5, 0.5]
+    percentage_ennemy_plusproche = [1.5, 1.6, 0.3, 0.3]
     
     score = board.get_score(player)
     # print(f"score {score}")
