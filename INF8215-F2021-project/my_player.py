@@ -62,8 +62,17 @@ class MyAgent(Agent):
             towards_goal = move_dict['down']
         elif player==1:
             towards_goal = move_dict['up']
-               
         
+        #change depth according to step
+        depth = 0
+        if step > 20 and time_left > 60:
+            depth =1
+        print('depth:', depth)
+        
+        uaction=remove_useless_actions(board, player)
+        print('==========', len(uaction))
+        print(uaction)
+        print('==========', len(uaction))
         
         shortestP = board.get_shortest_path(player)
         towards_goal = ('P', shortestP[0][0], shortestP[0][1])
@@ -87,8 +96,8 @@ class MyAgent(Agent):
         #             return i[1]
 
         # call apha-beta search
-        _, move = h_alphabeta_search(board, player, 1 ,step, heuristic)
-        #print(move)
+        _, move = h_alphabeta_search(board, player, depth ,step, heuristic)
+        print('move: ',move)
         # cache.append((minimal_state, move))
         # pickle.dump(cache, open("cache.p", "wb"))
         return move
@@ -96,19 +105,19 @@ class MyAgent(Agent):
 
 def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
 
-    def max_value(board, alpha, beta, depth):
+    def max_value(board, alpha, beta, depth, act=None):
         # print('MAX')
         if board.is_finished():
             return board.get_score(player), None
         
         if depth > max_depth:
-            return h(board, player, step), None
+            return h(board, player, step, act)
         
         v, move = -math.inf, None
         #print(len(remove_useless_actions(board, player)))
         for a in remove_useless_actions(board, player):
             transition = board.clone().play_action(a, player)
-            v2, _ = min_value(transition, alpha, beta, depth+1)
+            v2, _ = min_value(transition, alpha, beta, depth+1, a)
             if v2 > v:
                 v, move = v2, a
                 alpha = max(alpha, v)
@@ -116,18 +125,18 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
                 return v, move
         return v, move
 
-    def min_value(board: Board, alpha, beta, depth):
+    def min_value(board: Board, alpha, beta, depth, act=None):
         # print('MIN')
         # TODO: include a recursive call to min_value function
         # raise Exception("Function not implemented")
         if board.is_finished():
             return board.get_score(player), None
         if depth > max_depth:
-            return h(board, player, step), None
+            return h(board, player, step, act), None
         v, move = math.inf, None
         for a in remove_useless_actions(board, 1 - player):
             transition = board.clone().play_action(a, 1 - player)
-            v2, _ = max_value(transition, alpha, beta, depth+1)
+            v2, _ = max_value(transition, alpha, beta, depth+1, a)
             if v2 < v:
                 v, move = v2, a
                 beta = min(beta, v)
@@ -136,32 +145,35 @@ def h_alphabeta_search(board, player, max_depth, step, h=lambda s , p: 0):
         return v, move
 
     # print(max_depth)
-    return max_value(board, -math.inf, math.inf, 0 )
+    return max_value(board, -math.inf, math.inf, 0)
 
 def cutoff_depth(d):
     """A cutoff function that searches to depth d."""
     return lambda board, depth: depth > d
 
-def heuristic(board: Board, player, step):
+def heuristic(board: Board, player, step, act):
     #[score, path_player, path_oppenent, walls, man]
 
-    percentage = [0.3, 0.3, 0.2, 0.1, 0.1]
+    percentage = [2, 1.8, 0.5, 0.1]
+    
+    percentage_player_plusproche = [2, 1.5, 1, 0.1]
+    percentage_ennemy_plusproche = [1.5, 1.6, 0.1, 0.1]
+    
+    score = board.get_score(player)
+    if score >0:
+        percentage = percentage_player_plusproche
+    elif score< 0:
+        percentage = percentage_ennemy_plusproche
 
-    # if player == 0:
-    #     if board.pawns[1 - player][0] < 5:
-    #         percentage = [0.1, 0.1, 0.6, 0.1, 0.1]
-    # else:
-    #     if board.pawns[player][0] > 3:
-    #         percentage = [0.1, 0.1, 0.6, 0.1, 0.1]
 
-
+    
     sh_path_player = -len(board.get_shortest_path(player))
     sh_path_opponent = len(board.get_shortest_path(1 - player))
-    score = board.get_score(player) + sh_path_player
     walls = board.nb_walls[player] - board.nb_walls[1 - player]
-    man = manhattan(board.pawns[player], board.pawns[1 - player])
-
-    return (score * percentage[0] + sh_path_player * percentage[1] + sh_path_opponent * percentage[2] + walls * percentage[3] + man * percentage[4]) * 100
+    
+    heur_s = (sh_path_player * percentage[0] + sh_path_opponent * percentage[1] + walls * percentage[2])
+    print(act, heur_s,',' ,sh_path_player,',',percentage[0],',', sh_path_opponent ,',',percentage[1],',',walls,',',percentage[2])
+    return heur_s
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
@@ -177,28 +189,26 @@ def remove_useless_actions(board: Board, player):
         if a[0]=='P':
             good_action.append(a)
         #keep walls around ennemy
-        if walls_around_player(a_pos, ennemy_pos):
+        elif walls_around_ennemy(a_pos, ennemy_pos):
             good_action.append(a)
         #keep walls around my_player
-        if walls_around_player(a_pos, my_pos):
+        elif walls_around_player(a_pos, my_pos):
             good_action.append(a)
-        #keep walls close to other walls
-        for w in walls:
-            if manhattan(a_pos, w)<distance:
-                good_action.append(a)
+        # #keep walls close to other walls
+        # for w in walls:
+        #     if manhattan(a_pos, w)<distance:
+        #         good_action.append(a)
 
-    #distinc list
-    unique_good_action = []
-    for x in good_action:
-        if x not in unique_good_action:
-            unique_good_action.append(x)
     
-    return unique_good_action
+    return good_action
 
 #========================UTILS========================#
 def manhattan(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
+def walls_around_ennemy(action, player):
+    #is wall next to player
+    return (-2 <= (action[0] - player[0]) <=1) and (-2 <= (action[1]-player[1]) <= 1)
 def walls_around_player(action, player):
     #is wall next to player
     return (-2 <= (action[0] - player[0]) <=1) and (-2 <= (action[1]-player[1]) <= 1)
