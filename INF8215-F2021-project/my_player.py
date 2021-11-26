@@ -84,14 +84,14 @@ class MyAgent(Agent):
             
         
         # Tentative de cache
-        # minimal_state = (player, board.pawns, board.horiz_walls, board.verti_walls)
-        #cache array of (minimal_state, move)
-        # cache = pickle.load(open("cache.p", "rb"))
-        # for i in cache:
-        #     if i[0] == minimal_state:
-        #         print("found move in cache!")
-        #         if board.is_action_valid(i[1], player):
-        #             return i[1]
+        minimal_state = (player, board.pawns, board.horiz_walls, board.verti_walls)
+        # cache array of (minimal_state, move)
+        cache = pickle.load(open("cache.p", "rb"))
+        for i in cache:
+            if i[0] == minimal_state:
+                print("found move in cache!")
+                if board.is_action_valid(i[1], player):
+                    return i[1]
 
         # call apha-beta search
         _, move = h_alphabeta_search(board, player, depth ,step, heuristic)
@@ -164,7 +164,8 @@ def heuristic(board: Board, player, step, act):
     wall_player = board.nb_walls[player]
     wall_ennemy = -board.nb_walls[1 - player]
     
-    return (sh_path_player * percentage[0] + sh_path_opponent * percentage[1] + wall_player * percentage[2] + wall_ennemy * percentage[3])
+    return (sh_path_player * percentage[0] + sh_path_opponent * percentage[1]
+             + wall_player * percentage[2] + wall_ennemy * percentage[3])
 
 def remove_useless_actions(board: Board, player):
     actions = board.get_actions(player)
@@ -190,7 +191,6 @@ def remove_useless_actions(board: Board, player):
         #         good_action.append(a)
     
     return good_action
-
 #========================UTILS========================#
 def manhattan(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
