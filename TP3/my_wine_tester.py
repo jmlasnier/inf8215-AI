@@ -8,11 +8,20 @@ Authors:
 
 from wine_testers import WineTester
 
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
 
 class MyWineTester(WineTester):
     def __init__(self):
         # TODO: initialiser votre modèle ici:
-        pass
+        self.all_features_list = ['id','color', 'fixed acidity', 'volatile acidity', 'citric acid',
+       'residual sugar', 'chlorides', 'free sulfur dioxide',
+       'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol']
+        self.model = None
+        
 
     def train(self, X_train, y_train):
         """
@@ -27,7 +36,23 @@ class MyWineTester(WineTester):
                 the second column is the example label.
         """
         # TODO: entrainer un modèle sur X_train & y_train
-        raise NotImplementedError()
+        #X
+        
+        X = pd.DataFrame(X_train, columns=self.all_features_list)
+        X = X.drop(['id','color'], axis=1)
+        X = np.array(X)
+        
+        Y = pd.DataFrame(y_train, columns=['id','quality'])
+        Y = Y.drop(['id'], axis=1)
+        Y = np.array(Y)
+        
+        X_train, X_test, label_train, label_test = train_test_split(X,Y, test_size=0.2, random_state=0)
+
+        #Entrainement du model de regression
+        #create regressor object
+        self.model = RandomForestClassifier(n_estimators=5000, random_state=42, criterion="entropy", max_features="auto" )
+        self.model.fit(X_train, label_train)
+
 
     def predict(self, X_data):
         """
@@ -46,4 +71,12 @@ class MyWineTester(WineTester):
         :return: a 2D list of predictions with 2 columns: ID and prediction
         """
         # TODO: make predictions on X_data and return them
-        raise NotImplementedError()
+        data = pd.DataFrame(X_data, columns=self.all_features_list)
+        
+        data = data.drop(['id','color'], axis=1)
+        
+        predictions = self.model.predict(data.values)
+        
+        predictions =  np.append(np.array(list(range(len(predictions)))),np.array(predictions), axis=0).reshape(2,len(predictions)).transpose()
+        
+        return list(predictions)
