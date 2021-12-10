@@ -50,7 +50,7 @@ class MyWineTester(WineTester):
 
         #Entrainement du model de regression
         #create regressor object
-        self.model = RandomForestClassifier(n_estimators=5000, random_state=42, criterion="entropy", max_features="auto" )
+        self.model = RandomForestClassifier(n_estimators=10000, random_state=42, criterion="gini", max_features="auto" )
         self.model.fit(X_train, label_train)
 
 
